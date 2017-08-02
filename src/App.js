@@ -36,9 +36,9 @@ class Election extends Component {
     handleAddCandidate () {
 
         // get the next candidate ID
-        let nextID = this.state.candidates.map(obj => {
+        let nextID = (this.state.candidates.map(obj => {
             return obj.id;
-        }).sort().reverse()[0] + 1;
+        }).sort().reverse()[0] + 1) || 0;
 
         // set up the new candidate
         let newCandidate = {
@@ -51,9 +51,19 @@ class Election extends Component {
         this.setState({ newName: '' });
 
         // update candidates array
-        this.setState({ candidates: this.state.candidates.concat(newCandidate) }, function () {
-            console.log(this.state.candidates);
+        this.setState({ candidates: [...this.state.candidates, newCandidate] });
+
+    }
+
+    handleDeleteCandidate (id) {
+
+        // get the candidate who won't be deleted
+        let updateArray = this.state.candidates.filter(obj => {
+            return obj.id !== id;
         });
+
+        // set state.candidate to the updated array
+        this.setState({ candidates: updateArray });
 
     }
 
@@ -63,7 +73,7 @@ class Election extends Component {
         const updateArray = [...this.state.candidates];
 
         // get the candidate to update
-        let updateCandidate = updateArray.filter(obj => {
+        let updateCandidate = this.state.candidates.filter(obj => {
             return obj.id === id;
         })[0];
 
@@ -71,7 +81,7 @@ class Election extends Component {
         updateCandidate.votes++;
 
         // set state.candidate to the updated array
-        this.setState({...this.state, candidates: updateArray});
+        this.setState({ candidates: updateArray });
 
     }
 
@@ -85,7 +95,12 @@ class Election extends Component {
                     <Vote candidates={this.state.candidates} handleCastBallot={this.handleCastBallot.bind(this)} />
                 </div>
                 <div>
-                    <Candidates newName={this.state.newName} candidates={this.state.candidates} handleNewName={this.handleNewName.bind(this)} handleAddCandidate={this.handleAddCandidate.bind(this)} />
+                    <Candidates newName={this.state.newName}
+                                candidates={this.state.candidates}
+                                handleNewName={this.handleNewName.bind(this)}
+                                handleAddCandidate={this.handleAddCandidate.bind(this)}
+                                handleDeleteCandidate={this.handleDeleteCandidate.bind(this)}
+                    />
                 </div>
             </div>
         );
@@ -97,6 +112,7 @@ class Results extends Component {
 
     render () {
 
+        // tally the votes
         this.totalVotes = this.props.candidates.map(obj => {
             return obj.votes;
         }).reduce((previousVal, currentVal) => previousVal + currentVal, 0);
@@ -142,7 +158,12 @@ class Vote extends Component {
     render () {
 
         this.candidateButtons = this.props.candidates.map(candidate =>
-            <button key={candidate.id} type="button" onClick={this.props.handleCastBallot.bind(this, candidate.id)} style={{padding: '5px', margin: '10px'}}>{candidate.name}</button>
+            <button key={candidate.id}
+                    type="button"
+                    onClick={this.props.handleCastBallot.bind(this, candidate.id)}
+                    style={{padding: '5px', margin: '10px'}}>
+                {candidate.name}
+            </button>
         );
 
         return (
@@ -162,7 +183,13 @@ class Candidates extends Component {
     render () {
 
         this.candidateList = this.props.candidates.map(candidate =>
-            <li key={candidate.name} style={{padding: '5px', margin: '10px'}}>{candidate.name}</li>
+            <li key={candidate.id}
+                style={{padding: '5px', margin: '10px'}}>
+                {candidate.name}
+                <button type="button" onClick={this.props.handleDeleteCandidate.bind(this, candidate.id)}>
+                    Delete
+                </button>
+            </li>
         );
 
         return (
