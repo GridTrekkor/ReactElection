@@ -57,7 +57,7 @@ class Election extends Component {
 
     handleDeleteCandidate (id) {
 
-        // get the candidate who won't be deleted
+        // get the candidate(s) who won't be deleted
         let updateArray = this.state.candidates.filter(obj => {
             return obj.id !== id;
         });
@@ -112,15 +112,23 @@ class Results extends Component {
 
     render () {
 
+        // make a local copy of candidates
+        this.localCandidates = [...this.props.candidates];
+
+        // sort candidates by vote
+        this.localCandidates.sort((a, b) => {
+            return b.votes - a.votes;
+        });
+
         // tally the votes
-        this.totalVotes = this.props.candidates.map(obj => {
-            return obj.votes;
+        this.totalVotes = this.localCandidates.map(item => {
+            return item.votes;
         }).reduce((previousVal, currentVal) => previousVal + currentVal, 0);
 
-        this.candidateResults = this.props.candidates.map(candidate =>
+        this.candidateResults = this.localCandidates.map((candidate, index) =>
             <tr key={candidate.id}>
-                <td>{candidate.id + 1}</td>
-                <td>{candidate.name}</td>
+                <td>{index + 1}</td>
+                <td>{candidate.name} ({candidate.id + 1})</td>
                 <td>{candidate.votes}</td>
                 <td>{this.totalVotes > 0 && ((candidate.votes / this.totalVotes) * 100).toFixed(2) + '%'}</td>
             </tr>
@@ -132,13 +140,14 @@ class Results extends Component {
                 <table>
                     <thead>
                         <tr>
-                            <th />
+                            <th>Rank</th>
                             <th>Candidate</th>
                             <th>Votes</th>
                             <th>Proportion</th>
                         </tr>
                         {this.candidateResults}
                         <tr>
+                            <td></td>
                             <td></td>
                             <td>Total</td>
                             <td>{this.totalVotes}</td>
@@ -174,6 +183,7 @@ class Vote extends Component {
                 <div>{this.candidateButtons}</div>
             </div>
         );
+
     }
 
 }
@@ -185,7 +195,7 @@ class Candidates extends Component {
         this.candidateList = this.props.candidates.map(candidate =>
             <li key={candidate.id}
                 style={{padding: '5px', margin: '10px'}}>
-                {candidate.name}
+                {candidate.name}&nbsp;
                 <button type="button" onClick={this.props.handleDeleteCandidate.bind(this, candidate.id)}>
                     Delete
                 </button>
